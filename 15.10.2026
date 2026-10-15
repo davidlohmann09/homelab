@@ -1,0 +1,54 @@
+## 📅 15.10.2026 – Netzwerk & Grundsetup
+
+### ✅ Erledigt
+- **System aktualisiert:** `sudo apt update && sudo apt upgrade -y`
+- **Zweites WLAN (Handy-Hotspot) eingerichtet** über Netplan:
+  1. `ls /etc/netplan/` → Konfigdatei `00-installer-config.yaml` gefunden
+  2. Backup erstellt: `sudo cp …yaml …yaml.bak`
+  3. Mit `sudo nano` geöffnet und den Hotspot unter `access-points:` ergänzt
+  4. Mit `sudo netplan try` übernommen (setzt sich nach 120 s automatisch zurück, falls etwas kaputt ist)
+  5. Mit `ping` getestet
+- **Zeitzone gesetzt:** `sudo timedatectl set-timezone Europe/Berlin`
+- **Zuklappen ohne Standby:** In `/etc/systemd/logind.conf` die drei `HandleLidSwitch…`-Zeilen
+  einkommentiert und auf `ignore` gesetzt, dann `sudo systemctl restart systemd-logind`.
+  Geprüft mit `journalctl --since "3 min ago" | grep -i -E "lid|suspend"`
+
+### 🐛 Problem & Lösung
+- **Fehler:** `ping google.de` → `Temporary failure in name resolution`
+- **Eingrenzung:** Mit `ip a` geprüft → nur die Loopback-Adresse (`lo`) hatte eine IP,
+  das WLAN-Interface nicht. Also kein DNS-Problem, sondern gar keine Verbindung.
+- **Ursache:** Der Hotspot am Handy war ausgegangen. 🤦
+- **Learning:** Fehlersuche von unten nach oben (physisch → IP → DNS).
+  Und: Fehlermeldungen **sofort** notieren, später weiß man sie nicht mehr.
+
+  ### 🔋 Mission: Akku schonen (Ladegrenze 75–80 %)
+
+**Ausgangslage:** Der Akku war komplett leer, Van Helsing hängt aber ab jetzt dauerhaft am Strom.
+Dauerhaft 100 % oder Tiefentladung lassen den Akku schneller altern → Ladegrenze setzen.
+
+**Vorgehen**
+1. Aktuellen Akkustand geprüft mit `upower` (per Google-Recherche gefunden)
+2. In das Akku-Verzeichnis gewechselt und umgeschaut:
+   `cd /sys/class/power_supply/BAT0`
+3. Die zwei relevanten Dateien gefunden:
+   - `charge_control_start_threshold` → Laden **beginnt** erst unter diesem Wert
+   - `charge_control_end_threshold` → Laden **stoppt** bei diesem Wert
+4. Werte mit `sudo tee` gesetzt (nicht mit `>`, weil `sudo` nicht für die Umleitung gilt):
+   `echo 75 | sudo tee /sys/class/power_supply/BAT0/charge_control_start_threshold`
+   `echo 80 | sudo tee /sys/class/power_supply/BAT0/charge_control_end_threshold`
+5. Beide Werte mit `cat` kontrolliert ✅
+
+### 🐛 Problem & Lösung
+- **Fehler:** Beim Setzen von `end` auf 80 → `Invalid argument (os error 22)`
+- **Eingrenzung:** Mit `cat` den `start`-Wert geprüft → stand auf **95**
+- **Ursache:** Es muss immer gelten **end > start**. Mit 80 < 95 hat der Kernel die Änderung abgelehnt.
+- **Lösung:** Reihenfolge umgedreht: **erst `start` auf 75**, **dann `end` auf 80**.
+- **Learning:** Die Regel muss nach **jedem einzelnen Schritt** gelten, nicht nur am Ende.
+  Die Reihenfolge von Änderungen ist manchmal genauso wichtig wie das Ziel.
+
+### 🔄 Neustart-Test
+Nach `sudo reboot` sind die Werte erhalten geblieben. Grund: Die Ladegrenzen
+speichert der **Embedded Controller** des ThinkPads, nicht Linux.
+
+## 💡 Ideen für später
+- [ ] Stromausfall-Alarm: Push-Nachricht aufs Handy, wenn Van Helsing auf Akku läuft (→ Stufe 5/6)

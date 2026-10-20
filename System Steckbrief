@@ -1,0 +1,10 @@
+## 📋 System-Steckbrief (Stand: 20.10.2026)
+
+| Bereich | Wert |
+|---|---|
+| ⚙️ CPU | AMD Ryzen 7 PRO 5850U – 8 Kerne / 16 Threads (SMT) |
+| 🧠 RAM | 16 GiB verbaut, ~10 GiB nutzbar (4 GiB reserviert für AMD-Grafik) |
+| 🔄 Swap | 4 GiB (`/swap.img`) |
+| 💾 Speicher | 466 GB auf LVM (`ubuntu-vg/ubuntu-lv`), 2 % belegt |
+| 🔧 Dienste | 22 laufende Services, u. a. `systemd-networkd`, `ssh.socket`, `snapd`, `systemd-logind` |
+| 📊 Leerlauf | Load ~0.0x, größter RAM-Verbraucher: `snapd` (~0,4 %) |

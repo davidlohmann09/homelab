@@ -1,0 +1,32 @@
+## 📅 20.10.2026 – Stufe 2: Systemüberblick
+
+### 💾 Festplatte
+- `df -h` → `/` liegt auf LVM, 466 GB (GiB statt GB → weniger als 500), 2 % belegt
+- `tmpfs` = Dateisystem im RAM, z. B. `/run` (bis Neustart), `/run/user/1000` (bis Logout)
+- `sudo du -sh /var/*` → größter Ordner: `/var/lib` (Paketdaten, snap, später Docker)
+
+### 🧠 RAM
+- `free -h`: Entscheidend ist **available**, nicht free (Cache wird bei Bedarf freigegeben)
+- „Ungenutzter RAM ist verschwendeter RAM“ → Linux füllt ihn mit Cache von der Festplatte
+- Nur ~10 von 16 GiB nutzbar → Detektivarbeit: `lshw` zeigt 16 GiB verbaut,
+  `/sys/class/drm/card*/device/mem_info_vram_total` zeigt 4 GiB für die AMD-Grafik
+- Swap = Notfall-RAM auf der Festplatte, dauerhafte Nutzung wäre ein Warnsignal
+
+### ⚙️ CPU & Prozesse
+- `htop`: 16 Balken = 8 Kerne × 2 Threads (**SMT**, nutzt Wartezeiten im Kern)
+- **Load average** = Prozesse, die rechnen oder warten, über 1 / 5 / 15 Minuten
+  → Load ÷ Threads > 1 heißt Stau
+- ThinkPad: F-Tasten mit **Fn + Esc** (Fn-Lock); in htop sortiert `M` nach RAM, `P` nach CPU
+
+### 🔧 Dienste
+- `systemctl list-units --type=service --state=running` → 22 Dienste
+- SSH läuft per **Socket Activation**: `ssh.socket` lauscht auf Port 22, startet `ssh.service` erst bei Verbindung
+- `start` = jetzt an, `enable` = bei jedem Boot an, `enable --now` = beides
+
+### 📜 Logs
+- `journalctl -b` (aktueller Boot), `-b -1` (Boot davor), `-p 3` (nur Fehler), `-f` (live), `-u DIENST`
+- Gefundene Fehler: LAN-Timeout (kein Kabel) und NTS-Zeitsync-Timeout (Hotspot war aus 😅)
+- **Learning:** Ein Fehler im Log ist nicht automatisch ein Problem, immer im Zusammenhang sehen
+
+### 🧰 Werkzeuge installiert
+`sudo apt install tldr tree htop ncdu` → Regel: Komfort-Tools erst, wenn ich es einmal von Hand konnte
